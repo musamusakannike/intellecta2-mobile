@@ -79,19 +79,11 @@ const categories = [
 // Featured sliders
 const featuredItems: FeaturedItem[] = [
   {
-    id: 1,
-    title: "Spring Sale",
-    subtitle: "Get 50% off selected courses",
-    color1: "#4F78FF",
-    color2: "#8A53FF",
-    route: "/courses" as RelativePathString,
-  },
-  {
     id: 2,
     title: "New Courses",
     subtitle: "Check out our latest additions",
-    color1: "#FF5E5E",
-    color2: "#FF9D5C",
+    color1: "#4F78FF",
+    color2: "#8A53FF",
     route: "/courses" as RelativePathString,
   },
   {
@@ -102,6 +94,14 @@ const featuredItems: FeaturedItem[] = [
     color2: "#8BC34A",
     route: "/premium/subscribe" as RelativePathString,
   },
+  // {
+  //   id: 1,
+  //   title: "Spring Sale",
+  //   subtitle: "Get 50% off selected courses",
+  //   color1: "#FF5E5E",
+  //   color2: "#FF9D5C",
+  //   route: "/courses" as RelativePathString,
+  // },
 ]
 
 // Update the useNotifications hook to include the API calls
