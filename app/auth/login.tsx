@@ -300,7 +300,7 @@ export default function Login() {
               <View style={styles.socialLogin}>
                 <TouchableOpacity style={styles.socialButton} onPress={() => promptAsync()} disabled={!request}>
                   <Ionicons name="logo-google" size={24} color="#4285F4" />
-                  <Text style={styles.socialButtonText}>Sign in with Google</Text>
+                  <Text style={styles.socialButtonText}>Google</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.socialButton}>
