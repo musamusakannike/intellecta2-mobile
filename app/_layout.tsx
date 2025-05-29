@@ -14,9 +14,9 @@ export default function RootLayout() {
   useEffect(() => {
     let isMounted = true;
 
-    const noTokenTest = async () => {
-      await SecureStore.deleteItemAsync('token'); // For testing purposes, remove this in production
-    }
+    // const noTokenTest = async () => {
+    //   await SecureStore.deleteItemAsync('token'); // For testing purposes, remove this in production
+    // }
 
     const checkAuthToken = async () => {
       try {
@@ -40,7 +40,6 @@ export default function RootLayout() {
     // Safety timeout to avoid indefinite loading
     const timeout = setTimeout(() => {
       if (isMounted && hasToken === null) {
-        console.log("Token check timeout reached. Proceeding without token.");
         setHasToken(false);
       }
     }, 5000);
@@ -49,7 +48,7 @@ export default function RootLayout() {
       isMounted = false;
       clearTimeout(timeout);
     };
-  }, []);
+  }, [hasToken]);
 
   useEffect(() => {
     if (isSplashReady && hasToken !== null && !hasNavigatedRef.current) {
@@ -61,7 +60,7 @@ export default function RootLayout() {
         router.replace('/');
       }
     }
-  }, [isSplashReady, hasToken]);
+  }, [isSplashReady, hasToken, router]);
 
   if (!isSplashReady) {
     return <AnimatedSplash onFinish={() => setIsSplashReady(true)} />;

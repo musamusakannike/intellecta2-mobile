@@ -7,8 +7,6 @@ import {
     TextInput,
     ActivityIndicator,
     Animated,
-    Dimensions,
-    Platform,
     ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -25,8 +23,6 @@ interface ReviewModalProps {
     };
     isEditing?: boolean;
 }
-
-const { width } = Dimensions.get("window");
 
 const ReviewModal: React.FC<ReviewModalProps> = ({
     visible,
@@ -61,7 +57,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
         return () => {
             animation.stop();
         };
-    }, [visible, existingReview]);
+    }, [visible, existingReview, animatedValue]);
 
     const handleStarPress = (selectedRating: number) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -99,11 +95,6 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
     const modalTranslateY = animatedValue.interpolate({
         inputRange: [0, 1],
         outputRange: [300, 0],
-    });
-
-    const backdropOpacity = animatedValue.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, 0.5],
     });
 
     if (!visible) {

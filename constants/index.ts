@@ -1,5 +1,5 @@
 export const API_URL = "https://intellecta-server-h5ug.onrender.com/api/v1";
-// export const API_URL = "http://192.168.131.29:5000/api/v1"; // Localhost for testing
+// export const API_URL = "http://192.168.232.29:5000/api/v1"; // Localhost for testing
 
 export const API_ROUTES = {
   AUTH: {

@@ -41,14 +41,11 @@ interface Course {
   _id: string
   title: string
   description: string
-  price: number
   category: string
   isFeatured: boolean
 }
 
 interface FilterState {
-  minPrice: string
-  maxPrice: string
   isFeatured: boolean
   sortBy: string
   sortOrder: string
@@ -56,12 +53,6 @@ interface FilterState {
   search: string
   page: number
   limit: number
-}
-
-interface Category {
-  id: number
-  name: string
-  icon: string
 }
 
 interface FeaturedItem {
@@ -153,7 +144,7 @@ const useNotifications = () => {
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [toast])
 
   const fetchUnreadNotifications = useCallback(async () => {
     try {
@@ -215,7 +206,7 @@ const useNotifications = () => {
         message: "Network error. Please check your connection.",
       })
     }
-  }, [])
+  }, [toast, fetchUnreadNotifications, fetchAllNotifications])
 
   const markAllAsRead = useCallback(async () => {
     try {
@@ -250,7 +241,7 @@ const useNotifications = () => {
         message: "Network error. Please check your connection.",
       })
     }
-  }, [])
+  }, [toast, fetchAllNotifications])
 
   // Fetch unread notifications on mount
   useEffect(() => {
@@ -295,7 +286,7 @@ const useNetworkStatus = () => {
     })
 
     return () => unsubscribe()
-  }, [])
+  }, [toast])
 
   return { isOnline }
 }
@@ -303,7 +294,7 @@ const useNetworkStatus = () => {
 export default function Dashboard() {
   const [username, setUsername] = useState("Learner")
   const [profileImage, setProfileImage] = useState<string | null>(null)
-  const [courses, setCourses] = useState<Course[]>([])
+  // const [courses, setCourses] = useState<Course[]>([])
   const [filteredCourses, setFilteredCourses] = useState<Course[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -312,10 +303,7 @@ export default function Dashboard() {
   const [selectedCategory, setSelectedCategory] = useState("All")
   const [filterModalVisible, setFilterModalVisible] = useState(false)
   const [notificationsModalVisible, setNotificationsModalVisible] = useState(false)
-  const [token, setToken] = useState<string | null>(null)
   const [filters, setFilters] = useState<FilterState>({
-    minPrice: "",
-    maxPrice: "",
     isFeatured: false,
     sortBy: "createdAt",
     sortOrder: "desc",
@@ -342,7 +330,6 @@ export default function Dashboard() {
     const loadUserData = async () => {
       try {
         const storedToken = await SecureStore.getItemAsync("token")
-        setToken(storedToken)
 
         if (!storedToken) {
           try {
@@ -354,8 +341,9 @@ export default function Dashboard() {
               type: "error",
               message: "Navigation failed. Please restart the app.",
             });
+            console.log(err);
             // Optionally, force reload as a last resort
-            // window.location.reload(); // Only works on web
+            router.reload();
           }
           return;
         }
@@ -375,7 +363,7 @@ export default function Dashboard() {
     }
 
     loadUserData()
-  }, [])
+  }, [router, toast])
 
   // Fetch courses with filters
   const fetchCourses = useCallback(
@@ -396,8 +384,6 @@ export default function Dashboard() {
 
         const appliedFilters: FilterState = resetFilters
           ? {
-            minPrice: "",
-            maxPrice: "",
             isFeatured: false,
             sortBy: "createdAt",
             sortOrder: "desc",
@@ -410,15 +396,16 @@ export default function Dashboard() {
             ...filters,
             page,
             search: searchQuery,
-            category: selectedCategory !== "All" ? selectedCategory : "",
+            category:
+              selectedCategory && selectedCategory !== "All"
+                ? selectedCategory.toLowerCase()
+                : "",
           }
 
         // Construct the query string
         const params = new URLSearchParams()
         if (appliedFilters.search) params.append("search", appliedFilters.search)
         if (appliedFilters.category) params.append("category", appliedFilters.category)
-        if (appliedFilters.minPrice) params.append("minPrice", appliedFilters.minPrice)
-        if (appliedFilters.maxPrice) params.append("maxPrice", appliedFilters.maxPrice)
         if (appliedFilters.isFeatured) params.append("isFeatured", "true")
         if (appliedFilters.sortBy) params.append("sortBy", appliedFilters.sortBy)
         if (appliedFilters.sortOrder) params.append("sortOrder", appliedFilters.sortOrder)
@@ -435,7 +422,6 @@ export default function Dashboard() {
         const data = await response.json()
 
         if (response.ok) {
-          setCourses(data.courses)
           setFilteredCourses(data.courses)
           setPagination(data.pagination)
         } else {
@@ -455,7 +441,7 @@ export default function Dashboard() {
         setRefreshing(false)
       }
     },
-    [searchQuery, selectedCategory, filters, isOnline],
+    [searchQuery, selectedCategory, filters, isOnline, toast],
   )
 
   // Initial fetch
@@ -477,8 +463,6 @@ export default function Dashboard() {
 
     // Count active filters
     let count = 0
-    if (newFilters.minPrice) count++
-    if (newFilters.maxPrice) count++
     if (newFilters.isFeatured) count++
     if (newFilters.sortBy !== "createdAt" || newFilters.sortOrder !== "desc") count++
     setActiveFilters(count)
@@ -489,8 +473,6 @@ export default function Dashboard() {
   // Reset filters
   const resetFilters = () => {
     const defaultFilters = {
-      minPrice: "",
-      maxPrice: "",
       isFeatured: false,
       sortBy: "createdAt",
       sortOrder: "desc",
@@ -574,14 +556,6 @@ export default function Dashboard() {
     </TouchableOpacity>
   )
 
-
-  // Render course item
-  const renderCourseItem = ({ item }: { item: Course }) => (
-    <View style={styles.courseCardContainer}>
-      <CourseCard course={item} onPress={() => navigateToCourseDetails(item)} style={styles.courseCard} />
-    </View>
-  )
-
   // Empty state
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
@@ -604,7 +578,6 @@ export default function Dashboard() {
             <Skeleton style={styles.skeletonTitle} />
             <Skeleton style={styles.skeletonDescription} />
             <View style={styles.skeletonFooter}>
-              <Skeleton style={styles.skeletonPrice} />
               <Skeleton style={styles.skeletonRating} />
             </View>
           </View>
@@ -620,7 +593,7 @@ export default function Dashboard() {
     return (
       <View style={styles.offlineBanner}>
         <Ionicons name="cloud-offline-outline" size={18} color="#FFFFFF" />
-        <Text style={styles.offlineBannerText}>You're offline. Using cached data.</Text>
+        <Text style={styles.offlineBannerText}>You&apos;re offline. Using cached data.</Text>
       </View>
     )
   }
@@ -748,16 +721,16 @@ export default function Dashboard() {
 
           {/* Featured Slider */}
           <View style={styles.featuredContainer}>
-            <FlatList 
-              data={featuredItems} 
-              renderItem={({ item }) => renderFeaturedItem(item)} 
-              keyExtractor={(item) => item.id.toString()} 
-              horizontal 
-              showsHorizontalScrollIndicator={false} 
-              contentContainerStyle={styles.featuredList} 
-              snapToInterval={width * 0.9 + 10} 
-              decelerationRate="fast" 
-              pagingEnabled 
+            <FlatList
+              data={featuredItems}
+              renderItem={({ item }) => renderFeaturedItem(item)}
+              keyExtractor={(item) => item.id.toString()}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.featuredList}
+              snapToInterval={width * 0.9 + 10}
+              decelerationRate="fast"
+              pagingEnabled
             />
           </View>
 
@@ -773,9 +746,9 @@ export default function Dashboard() {
             {/* Courses List */}
             {isLoading ? (
               renderSkeleton()
-            ) : courses.length > 0 ? (
+            ) : filteredCourses.length > 0 ? (
               <>
-                {courses.map((course) => (
+                {filteredCourses.map((course) => (
                   <View key={course._id} style={styles.courseCardContainer}>
                     <CourseCard course={course} onPress={() => navigateToCourseDetails(course)} style={styles.courseCard} />
                   </View>
@@ -864,35 +837,6 @@ export default function Dashboard() {
 
               <ScrollView style={styles.filterContent}>
                 <View style={styles.filterSection}>
-                  <Text style={styles.filterSectionTitle}>Price Range</Text>
-                  <View style={styles.priceInputs}>
-                    <View style={styles.priceInputContainer}>
-                      <Text style={styles.priceInputLabel}>Min</Text>
-                      <TextInput
-                        style={styles.priceInput}
-                        placeholder="0"
-                        placeholderTextColor="#8A8FA3"
-                        keyboardType="numeric"
-                        value={filters.minPrice}
-                        onChangeText={(text) => setFilters({ ...filters, minPrice: text })}
-                      />
-                    </View>
-                    <View style={styles.priceInputDivider} />
-                    <View style={styles.priceInputContainer}>
-                      <Text style={styles.priceInputLabel}>Max</Text>
-                      <TextInput
-                        style={styles.priceInput}
-                        placeholder="1000"
-                        placeholderTextColor="#8A8FA3"
-                        keyboardType="numeric"
-                        value={filters.maxPrice}
-                        onChangeText={(text) => setFilters({ ...filters, maxPrice: text })}
-                      />
-                    </View>
-                  </View>
-                </View>
-
-                <View style={styles.filterSection}>
                   <Text style={styles.filterSectionTitle}>Featured Courses</Text>
                   <TouchableOpacity
                     style={styles.switchContainer}
@@ -916,14 +860,6 @@ export default function Dashboard() {
                         style={[styles.sortOptionText, filters.sortBy === "createdAt" && styles.sortOptionTextActive]}
                       >
                         Date
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.sortOption, filters.sortBy === "price" && styles.sortOptionActive]}
-                      onPress={() => setFilters({ ...filters, sortBy: "price" })}
-                    >
-                      <Text style={[styles.sortOptionText, filters.sortBy === "price" && styles.sortOptionTextActive]}>
-                        Price
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -1270,12 +1206,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 8,
   },
-  skeletonPrice: {
-    height: 18,
-    width: 80,
-    borderRadius: 4,
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
-  },
   skeletonRating: {
     height: 18,
     width: 60,
@@ -1330,33 +1260,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#FFFFFF",
     marginBottom: 12,
-  },
-  priceInputs: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  priceInputContainer: {
-    flex: 1,
-  },
-  priceInputLabel: {
-    fontSize: 14,
-    color: "#B4C6EF",
-    marginBottom: 8,
-  },
-  priceInput: {
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    color: "#FFFFFF",
-    fontSize: 16,
-  },
-  priceInputDivider: {
-    width: 20,
-    height: 2,
-    backgroundColor: "#B4C6EF",
-    marginHorizontal: 12,
-    marginTop: 20,
   },
   switchContainer: {
     flexDirection: "row",

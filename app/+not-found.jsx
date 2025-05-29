@@ -27,7 +27,7 @@ export default function NotFound() {
         <View style={styles.container}>
           {/* Icon */}
           <View style={styles.iconContainer}>
-            {/* <Image
+            <Image
               source={require('../assets/images/icon.png')}
               style={styles.icon}
               defaultSource={require('../assets/images/icon.png')}
@@ -36,7 +36,7 @@ export default function NotFound() {
                   <Text style={styles.fallbackText}>404</Text>
                 </View>
               }
-            /> */}
+            />
           </View>
           
           {/* Main message */}
