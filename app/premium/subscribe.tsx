@@ -23,7 +23,7 @@ const PLANS = [
   {
     id: 'monthly',
     name: 'Monthly',
-    price: 9.99,
+    price: 2000,
     description: 'Billed monthly',
     features: [
       'Access to all premium courses',
@@ -35,7 +35,7 @@ const PLANS = [
   {
     id: 'yearly',
     name: 'Yearly',
-    price: 89.99,
+    price: 18000,
     description: 'Billed annually (save 25%)',
     features: [
       'Access to all premium courses',
@@ -309,7 +309,7 @@ export default function PremiumSubscribe() {
                   </View>
                   
                   <View style={styles.planPriceContainer}>
-                    <Text style={styles.planPrice}>${plan.price}</Text>
+                    <Text style={styles.planPrice}>₦{parseFloat(plan.price.toFixed(2)).toLocaleString()}</Text>
                   </View>
                   
                   <View style={styles.planFeatures}>
